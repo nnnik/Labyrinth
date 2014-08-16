@@ -18,13 +18,20 @@ SetFormat,FloatFast,15.15
 	Map.Insert([1,0,0,0,0,0,1,1,1,0])
 	Map.Insert([1,1,0,1,1,1,1,0,1,1])
 Game:=new Labrynth(Map)
-Game.Player.FirstUpdate()
 Loop{
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-	glLoadIdentity()
-	Game.Update()
-	Game.Draw()
-	DllCall("gdi32\SwapBuffers","UInt",Game.hDC)
+	Game.Player.FirstUpdate()
+	MouseMove,% (A_ScreenWidth//2),% (A_ScreenHeight//2)
+	DllCall("ShowCursor","uint",0)
+	While (Game.Hwnd=WinActive("A")){
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+		glLoadIdentity()
+		Game.Update()
+		Game.Draw()
+		DllCall("gdi32\SwapBuffers","UInt",Game.hDC)
+	}
+	DllCall("ShowCursor","uint",1)
+	While !(Game.Hwnd=WinActive("A"))
+		Continue
 }
 
 
@@ -35,7 +42,9 @@ Class Labrynth{
 		Global
 		aglInit()
 		Gui,new
+		Gui,+LastFound
 		aglUseGui()
+		this.HWND:=WinExist()
 		this.hDC := DllCall("GetDC", "ptr", WinExist(), "ptr")
 		glEnable(GL_TEXTURE_2D)
 		glEnable(GL_DEPTH_TEST)
@@ -53,11 +62,10 @@ Class Labrynth{
 		this.Textures:={}
 		this.Textures.Wall:=LoadTexture("Wall.jpg")
 		this.Textures.Ground:=LoadTexture("Ground.png")
-		this.Textures.Start:=CreateTextTexture("Start","FFFF0000")
-		this.Textures.Goal:=CreateTextTexture("Goal","FF00FF00")
+		this.Textures.Start:=CreateTextTexture("Start","AA0000FF")
+		this.Textures.Goal:=CreateTextTexture("Goal","AA00FF00")
 		this.map:=map
 		this.List:=this.CreateRedraw()
-		DllCall("ShowCursor","uint",0)
 		MouseMove,% (A_ScreenWidth//2),% (A_ScreenHeight//2)
 	}
 
