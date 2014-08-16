@@ -1,5 +1,6 @@
 #Include agl.ahk
 #Include gl.ahk
+#Include Labyrithsgdip.ahk
 #NoTrayIcon
 SetBatchlines,-1
 SetMouseDelay,-1
@@ -40,6 +41,9 @@ Class Labrynth{
 		glEnable(GL_DEPTH_TEST)
 		DllCall("opengl32\glEnable","UInt",0xBE2) ;GL_BLEND 
 		DllCall("opengl32\glBlendFunc","UInt",0x302,"UInt",0x303) ;enable transparent textures
+		DllCall("opengl32\glShadeModel","UInt",0x1D01)
+		DllCall("opengl32\glHint","UInt",0xC50,"UInt",0x1102) ;GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST
+		DllCall("opengl32\glPolygonMode","UInt",0x408,"UInt",0x1B02) ;GL_FRONT_AND_BACK, GL_FILL
 		glDepthFunc(GL_LEQUAL)
 		glClearDepth(1.0)
 		Gui,show,w800 h600,Test
@@ -48,8 +52,7 @@ Class Labrynth{
 		this.Boxlist := new Boxlist()
 		this.Textures:={}
 		this.Textures.Wall:=LoadTexture("Wall.jpg")
-		this.Textures.Ground:=LoadTexture("Ground.jpg")
-		this.Textures.Ceiling:=LoadTexture("Ceiling.jpg")
+		this.Textures.Ground:=LoadTexture("Ground.png")
 		this.Textures.Start:=CreateTextTexture("Start","FFFF0000")
 		this.Textures.Goal:=CreateTextTexture("Goal","FF00FF00")
 		this.map:=map
@@ -193,8 +196,6 @@ Class Boxlist{
 			DrawWallBack(X,Y)
 		If !map[x-1,y]
 			DrawWallLeft(X,Y)
-		glBindTexture(0xDE1,textures.Ceiling)
-			DrawTop(X,Y)
 		glBindTexture(0xDE1,textures.Ground)
 			DrawGround(X,Y)
 		return {collision:1,id:1}
@@ -209,8 +210,6 @@ Class Boxlist{
 			DrawWallBack(X,Y)
 		If !map[x-1,y]
 			DrawWallLeft(X,Y)
-		glBindTexture(0xDE1,textures.Ceiling)
-			DrawTop(X,Y)
 		glBindTexture(0xDE1,textures.Ground)
 			DrawGround(X,Y)
 		this.Player.X:=X*2-1
@@ -227,8 +226,6 @@ Class Boxlist{
 			DrawWallBack(X,Y)
 		If !map[x-1,y]
 			DrawWallLeft(X,Y)
-		glBindTexture(0xDE1,textures.Ceiling)
-			DrawTop(X,Y)
 		glBindTexture(0xDE1,textures.Ground)
 			DrawGround(X,Y)
 		return {collision:1,id:3,OnPlayerCollideFirst:func("EndGame"),OnDraw:func("DisplayGoal")}
@@ -338,17 +335,6 @@ glTexCoord2f(0.0, 1.0), glVertex3f(X-BlockSize,-BlockSize,Z-BlockSize)
 glEnd()
 }
 
-DrawTop(BlockX,BlockY,BlockSize=1)
-{
-glBegin(0x07)
-X:=BlockX*2
-Z:=(-BlockY)*2
-glTexCoord2f(0.0, 0.0), glVertex3f(X-BlockSize,BlockSize,Z-BlockSize)
-glTexCoord2f(1.0, 0.0), glVertex3f(X+BlockSize,BlockSize,Z-BlockSize)
-glTexCoord2f(1.0, 1.0), glVertex3f(X+BlockSize,BlockSize,Z+BlockSize)
-glTexCoord2f(0.0, 1.0), glVertex3f(X-BlockSize,BlockSize,Z+BlockSize)
-glEnd()
-}
 
 
 ResizeScene(PosX,PosY,Width,Height,FieldOfView = 45.0,ClipNear = 0.001,ClipFar = 100.0)
